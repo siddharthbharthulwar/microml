@@ -23,6 +23,9 @@
                        ("raise", RAISE);
                        ("rec", REC);
                        ("true", TRUE);
+                       ("sin", SIN);
+                       ("cos", COS);
+                       ("tan", TAN);
                        ("false", FALSE);
                        ("fun", FUNCTION);
                        ("function", FUNCTION)
@@ -53,6 +56,10 @@ rule token = parse
   | digit+ as inum
         { let num = int_of_string inum in
           INT num
+        }
+  | digit+ '.' digit* as fnum
+        {
+          let num = float_of_string fnum in FLOAT num
         }
   | id as word
         { try

@@ -10,6 +10,9 @@
 (* Unary operators *)
 type unop =
   | Negate
+  | Sin
+  | Cos
+  | Tan
 ;;
 
 (* Binary operators *)
@@ -28,6 +31,7 @@ type varid = string ;;
 type expr =
   | Var of varid                         (* variables *)
   | Num of int                           (* integers *)
+  | Float of float                       (* floats *)
   | Bool of bool                         (* booleans *)
   | Unop of unop * expr                  (* unary operators *)
   | Binop of binop * expr * expr         (* binary operators *)

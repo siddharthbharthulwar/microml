@@ -39,22 +39,12 @@ module type ENV = sig
        `varid`, raising an `Eval_error` if not found *)
     val lookup : env -> varid -> value
 
-    (* extend env varid loc -- Returns a new environment just like
-       `env` except that it maps the variable `varid` to the `value`
-       stored at `loc`. This allows later changing the value, an
-       ability used in the evaluation of `letrec`. To make good on
-       this, extending an environment needs to preserve the previous
-       bindings in a physical, not just structural, way. *)
     val extend : env -> varid -> value ref -> env
 
     (* env_to_string env -- Returns a printable string representation
        of environment `env` *)
     val env_to_string : env -> string
                                  
-    (* value_to_string ?printenvp value -- Returns a printable string
-       representation of a value; the optional flag `printenvp`
-       (default: `true`) determines whether to include the environment
-       in the string representation when called on a closure *)
     val value_to_string : ?printenvp:bool -> value -> string
   end
 
@@ -68,82 +58,140 @@ module Env : ENV =
     let empty () : env = []
 
     let close (exp : expr) (env : env) : value =
-      failwith "close not implemented"
+      Closure (exp, env)
 
     let lookup (env : env) (varname : varid) : value =
-      failwith "lookup not implemented"
+      try !(List.assoc varname env) with 
+      | Not_found -> raise (EvalError "error: variable is unbound") ;;
 
     let extend (env : env) (varname : varid) (loc : value ref) : env =
-      failwith "extend not implemented"
+      (varname, loc) :: List.remove_assoc varname env ;;
 
-    let value_to_string ?(printenvp : bool = true) (v : value) : string =
-      failwith "value_to_string not implemented"
+    let rec value_to_string ?(printenvp : bool = true) (v : value) : string =
+      match v with
+      | Closure (x, v) -> if printenvp then  exp_to_concrete_string x ^
+                                " in env: " ^ env_to_string v
+                              else exp_to_concrete_string x
+      | Val x -> exp_to_concrete_string x
 
-    let env_to_string (env : env) : string =
-      failwith "env_to_string not implemented"
+    and env_to_string (env : env) : string =
+      List.fold_left (fun a (x, y) -> 
+        a ^ "(" ^ x ^ ", " ^ value_to_string !y ^ "), ") "" env
   end
 ;;
 
-
-(*......................................................................
-  Evaluation functions
-
-  Each of the evaluation functions below evaluates an expression `exp`
-  in an environment `env` returning a result of type `value`. We've
-  provided an initial implementation for a trivial evaluator, which
-  just converts the expression unchanged to a `value` and returns it,
-  along with "stub code" for three more evaluators: a substitution
-  model evaluator and dynamic and lexical environment model versions.
-
-  Each evaluator is of type `expr -> Env.env -> Env.value` for
-  consistency, though some of the evaluators don't need an
-  environment, and some will only return values that are "bare
-  values" (that is, not closures). 
-
-  DO NOT CHANGE THE TYPE SIGNATURES OF THESE FUNCTIONS. Compilation
-  against our unit tests relies on their having these signatures. If
-  you want to implement an extension whose evaluator has a different
-  signature, implement it as `eval_e` below.  *)
-
-(* The TRIVIAL EVALUATOR, which leaves the expression to be evaluated
-   essentially unchanged, just converted to a value for consistency
-   with the signature of the evaluators. *)
+(* evaluation functions: *)
    
 let eval_t (exp : expr) (_env : Env.env) : Env.value =
   (* coerce the expr, unchanged, into a value *)
   Env.Val exp ;;
 
 (* The SUBSTITUTION MODEL evaluator -- to be completed *)
+
+let evalunop (xyz : unop) (e : expr) : expr = 
+  match xyz, e with 
+  | Negate, Num x -> Num (~-x)
+  | Negate, Float x -> Float (~-. x)
+  | Sin, Num x -> Float (sin (float_of_int x))
+  | Sin, Float x -> Float (sin x)
+  | Cos, Num x -> Float (cos (float_of_int x))
+  | Cos, Float x -> Float (cos x)
+  | Tan, Num x -> Float (tan (float_of_int x))
+  | Tan, Float x -> Float (tan x)
+  | _, _ -> raise (EvalError " invalid unary operator ") ;;
+
+let float_int_helper (f_int : int -> int -> int) (f_float : float -> float -> float) 
+  (x : 'a) (y : 'b) : Expr.expr =
+  match x, y with
+  | Num a, Num b -> Num (f_int a b)
+  | Num a, Float b -> Float(f_float (float_of_int a) b)
+  | Float a, Num b -> Float(f_float a (float_of_int b))
+  | Float a, Float b -> Float(f_float a b)
+  | _, _ -> raise (EvalError "invalid binary operator") ;;
+
+let evalbinop (b : binop) (ab : expr) (bc : expr) : expr =
+  match b with
+  | Plus -> float_int_helper (+) (+.) ab bc
+  | Minus -> float_int_helper (-) (-.) ab bc
+  | Times -> float_int_helper ( * ) ( *.) ab bc
+  | _ -> 
+    match b, ab, bc with
+    | Equals, Num x, Num y -> Bool (x = y)
+    | Equals, Float x, Float y -> Bool (x = y)
+    | Equals, Float x, Num y -> Bool (x = (float_of_int y))
+    | Equals, Num x, Float y -> Bool ((float_of_int x) = y)
+    | LessThan, Num x, Num y -> Bool (x < y)
+    | LessThan, Float x, Float y -> Bool (x < y)
+    | LessThan, Float x, Num y -> Bool (x < (float_of_int y))
+    | LessThan, Num x, Float y -> Bool ((float_of_int x) < y)
+    | Equals, Bool x, Bool y -> Bool (x && y)
+    | _, _, _ -> raise (EvalError " invalid binary operator ") ;;
    
-let eval_s (_exp : expr) (_env : Env.env) : Env.value =
-  failwith "eval_s not implemented" ;;
+let eval_s (exp : expr) (_env : Env.env) : Env.value =
+  let rec eval (exp : expr) : expr =
+  match exp with 
+  | Var _ -> raise (EvalError " unbound variable error ")
+  | Num _ | Float _ | Bool _ | Raise | Unassigned | Fun (_, _)  -> exp
+  | Unop (xyz, e) -> evalunop xyz (eval e)
+  | Binop (xyz, ab, bc) -> evalbinop xyz (eval ab) (eval bc)
+  | Conditional (ab, bc, cd) -> (match eval ab with 
+                                | Bool b -> if b then eval bc else eval cd 
+                                | _ -> raise (EvalError " invalid conditional applied "))
+  | Let (v, ab, bc) -> eval (subst v (eval ab) bc)
+  | Letrec (v, ab, bc) -> eval (subst v (eval (subst v 
+                          (Letrec (v, ab, Var v)) ab)) bc)
+  | App (ab, bc) -> (match eval ab with 
+                    | Fun (v, e) -> eval (subst v (eval bc) e)
+                    | _ -> raise (EvalError " application error "))
+  in 
+  Val (eval exp) ;;
      
-(* The DYNAMICALLY-SCOPED ENVIRONMENT MODEL evaluator -- to be
-   completed *)
+
+(* helper function for dynamic and lexical evaluation *)
+
+let eval_d_l (exp : expr) (env : Env.env) (dynamic_lex : bool) : Env.value = 
+  let rec helper (exp : expr) (env : Env.env) : Env.value =
+  match exp with 
+  | Var v -> Env.lookup env v 
+  | Num _  | Float _ | Bool _ | Raise | Unassigned -> Env.Val exp
+  | Unop (xyz, e) -> (match helper e env with 
+                    | Env.Val e -> Env.Val (evalunop xyz e)
+                    | _ -> raise (EvalError " invalid unary operation applied"))
+  | Binop (xyz, ab, bc) -> (match helper ab env, helper bc env with 
+                          | Env.Val ab, Env.Val bc -> Env.Val (evalbinop xyz ab bc) 
+                          | _, _ -> raise (EvalError " invalid binary operation applied "))
+  | Fun _ -> if dynamic_lex then Env.Val exp else Env.close exp env
+  | Conditional (ab, bc, cd) -> (match helper ab env with 
+                                | Env.Val (Bool b) -> if b then helper bc env 
+                                                  else helper cd env 
+                                | _ -> raise (EvalError " invalid conditional applied "))
+  | Let (v, ab, bc) -> helper (App (Fun (v, bc), ab)) env
+  | Letrec (v, ab, bc) -> 
+                          let a = ref (Env.Val Unassigned) in
+                          let new_env = Env.extend env v a in
+                          let a_1 = ref (helper ab new_env) in
+                          (a := !a_1; helper bc (Env.extend env v a))
+  | App (ab, bc) -> 
+      match helper ab env with 
+      | Env.Val (Fun (v, e)) -> 
+        if dynamic_lex then helper e (Env.extend env v (ref (helper bc env)))
+        else raise EvalException
+      | Closure (Fun (v, e), en) -> 
+        if not dynamic_lex then helper e (Env.extend en v (ref (helper bc env)))
+        else raise EvalException
+      | _ -> raise (EvalError " application error ")
+
+  in 
+  helper exp env ;;
+
+(* dynamic evaluation *)
    
-let eval_d (_exp : expr) (_env : Env.env) : Env.value =
-  failwith "eval_d not implemented" ;;
+let eval_d (exp : expr) (env : Env.env) : Env.value =
+  eval_d_l exp env true ;;
        
-(* The LEXICALLY-SCOPED ENVIRONMENT MODEL evaluator -- optionally
-   completed as (part of) your extension *)
+(* lexical evaluation *)
    
-let eval_l (_exp : expr) (_env : Env.env) : Env.value =
-  failwith "eval_l not implemented" ;;
-
-(* The EXTENDED evaluator -- if you want, you can provide your
-   extension as a separate evaluator, or if it is type- and
-   correctness-compatible with one of the above, you can incorporate
-   your extensions within `eval_s`, `eval_d`, or `eval_l`. *)
-
-let eval_e _ =
-  failwith "eval_e not implemented" ;;
-  
-(* Connecting the evaluators to the external world. The REPL in
-   `miniml.ml` uses a call to the single function `evaluate` defined
-   here. Initially, `evaluate` is the trivial evaluator `eval_t`. But
-   you can define it to use any of the other evaluators as you proceed
-   to implement them. (We will directly unit test the four evaluators
-   above, not the `evaluate` function, so it doesn't matter how it's
-   set when you submit your solution.) *)
+let eval_l (exp : expr) (env : Env.env) : Env.value =
+  eval_d_l exp env false ;;
    
-let evaluate = eval_t ;;
+let evaluate = eval_l ;;
