@@ -1,7 +1,7 @@
-all: expr miniml
+all: expr MicroML
 
 expr:
 	ocamlbuild -use-ocamlfind expr.byte
 
-miniml:
-	ocamlbuild -use-ocamlfind miniml.byte
+MicroML:
+	ocamlbuild -use-ocamlfind MicroML.byte

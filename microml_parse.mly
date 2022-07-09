@@ -1,6 +1,6 @@
 (*
-                         CS 51 Final Project
-                           MiniML -- Parser
+                         Source Code by Sid Bharthulwar  
+                           MicroML -- Parser
 *)
                   
 %{

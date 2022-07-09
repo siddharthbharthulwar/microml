@@ -1,6 +1,6 @@
 (* 
-                         CS 51 Final Project
-                         MiniML -- Evaluation
+                         Source Code by Sid Bharthulwar  
+                         MicroML -- Evaluation
 *)
 
 (* This module implements a small untyped ML-like language under

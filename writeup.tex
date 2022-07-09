@@ -3,7 +3,7 @@
 \usepackage{minted}
 \usepackage[parfill]{parskip}
 \usepackage[left=1.5cm, right=2cm]{geometry}
-\title{CS51 Final Project: MiniML}
+\title{MicroML}
 \author{Sid Bharthulwar}
 \date{May 3rd, 2022}
 
@@ -13,13 +13,13 @@
 
 \section{Introduction}
 
-In this project, I completed an implementation of an OCaml subset language, called MiniML. This language is Turing-complete, which by the Church-Turing thesis implies that any performable computation can be completed within the language. However, there are some constraints on the language due to its simple nature and lack of advanced data types by default (lists, records, arrays, etc). Additionally, because MiniML is in the form of an interpreter for expressions written in the OCaml syntax itself, this implementation can also be considered a metacircular interpreter.  MiniML supports basic computation and recursive functions, but does not have type inference, custom data types, classes and objects, or functors. Additionally, I implemented three types of semantics in MiniML: the subtitution model, dynamically scoped environmental model, and lexically scoped environmental model. 
+In this project, I completed an implementation of an OCaml subset language, called MicroML. This language is Turing-complete, which by the Church-Turing thesis implies that any performable computation can be completed within the language. However, there are some constraints on the language due to its simple nature and lack of advanced data types by default (lists, records, arrays, etc). Additionally, because MicroML is in the form of an interpreter for expressions written in the OCaml syntax itself, this implementation can also be considered a metacircular interpreter.  MicroML supports basic computation and recursive functions, but does not have type inference, custom data types, classes and objects, or functors. Additionally, I implemented three types of semantics in MicroML: the subtitution model, dynamically scoped environmental model, and lexically scoped environmental model. 
 
 \section{Extensions}
 
 \subsection{Lexical Scope Extension}
 
-The first major extension that I added to MiniML was the addition of the \texttt{eval\char`_l} function, which evaluates expressions with lexically scoped environment semantics. Because OCaml is lexically scoped, this particular evaluation method handles expressions more similarly to OCaml than either \texttt{eval\char`_d} or \texttt{eval\char`_s}. In order to facilitate both \texttt{eval\char`_l} and \texttt{eval\char`_d} methods, I created a helper function based on my original \texttt{eval\char`_d} code that would remove code redundancy between the two methods. 
+The first major extension that I added to MicroML was the addition of the \texttt{eval\char`_l} function, which evaluates expressions with lexically scoped environment semantics. Because OCaml is lexically scoped, this particular evaluation method handles expressions more similarly to OCaml than either \texttt{eval\char`_d} or \texttt{eval\char`_s}. In order to facilitate both \texttt{eval\char`_l} and \texttt{eval\char`_d} methods, I created a helper function based on my original \texttt{eval\char`_d} code that would remove code redundancy between the two methods. 
 \begin{minted}{ocaml}
 
 let eval_d_l (exp : expr) (env : Env.env) (isdynam : bool) : Env.value = 
@@ -64,7 +64,7 @@ This function follows the same approach as my original \texttt{eval\char`_d} fun
 
 \subsubsection{Introduction}
 
-In order to make MiniML more useful for standard computations, I deemed the inclusion of the float data type as necessary. Just as the integer is defined in the parser, \texttt{eval\char`_parse.mly}, I added the line \texttt{\%token <float> FLOAT} and added the grammar rule in \texttt{expnoapp: | FLOAT         \{Float \$1 \}}. Within the lexer, I added the following rule for floats: 
+In order to make MicroML more useful for standard computations, I deemed the inclusion of the float data type as necessary. Just as the integer is defined in the parser, \texttt{eval\char`_parse.mly}, I added the line \texttt{\%token <float> FLOAT} and added the grammar rule in \texttt{expnoapp: | FLOAT         \{Float \$1 \}}. Within the lexer, I added the following rule for floats: 
 
 \begin{minted}{ocaml}
 | digit+ '.' digit* as fnum
@@ -75,7 +75,7 @@ In order to make MiniML more useful for standard computations, I deemed the incl
 
 \subsubsection{Trigonometric Unary Operators}
 
-Similar to how the float syntax was added to MiniML, three unary operators that work on both floats and integers were also added: the trigonometric functions sine, cosine, and tangent. Both the lexer and parser were modified to recognize these tokens as valid syntax, and the evaluation rules were added to \texttt{evaluation.ml}. Specifically, the helper function that I created for evaluating unary operators was modified as so:
+Similar to how the float syntax was added to MicroML, three unary operators that work on both floats and integers were also added: the trigonometric functions sine, cosine, and tangent. Both the lexer and parser were modified to recognize these tokens as valid syntax, and the evaluation rules were added to \texttt{evaluation.ml}. Specifically, the helper function that I created for evaluating unary operators was modified as so:
 
 \begin{minted}{ocaml}
 
@@ -92,11 +92,11 @@ let evalunop (xyz : unop) (e : expr) : expr =
   | _, _ -> raise (EvalError " invalid unary operator ") ;;
 \end{minted}
 
-To make these unary operators easier to use within the language, I added the ability for integers to be passed in as arguments as well as floats, so there is no need to cast integers to floats beforehand (in fact, this functionality is not available with the current version of MiniML). 
+To make these unary operators easier to use within the language, I added the ability for integers to be passed in as arguments as well as floats, so there is no need to cast integers to floats beforehand (in fact, this functionality is not available with the current version of MicroML). 
 
 \subsubsection{Interoperability of Floats and Integers}
 
-For my final float-based extension for my implementation of MiniML, I thought that I would implement one of my favorite features of Python. I took advantage of the chance to modify OCaml's core behavior by adding interoperability of integers and floats with binary operators. In standard OCaml, executing a command such as \texttt{3 + 4.2 ;;} results in an error, because the + operator can strictly be called with integer arguments. However, instead utilizing the +. operator results in the same issue, because both arguments have to be floats. In order to solve this, I eliminated the binary arithmetic operators with the '.' suffix, and introduced arithmetic interoperability between types to MiniML. My implementation is similar to default semantic rules in Python, where common binary operators can be performed on both integers and floats, and the outputs are of type float. \\
+For my final float-based extension for my implementation of MicroML, I thought that I would implement one of my favorite features of Python. I took advantage of the chance to modify OCaml's core behavior by adding interoperability of integers and floats with binary operators. In standard OCaml, executing a command such as \texttt{3 + 4.2 ;;} results in an error, because the + operator can strictly be called with integer arguments. However, instead utilizing the +. operator results in the same issue, because both arguments have to be floats. In order to solve this, I eliminated the binary arithmetic operators with the '.' suffix, and introduced arithmetic interoperability between types to MicroML. My implementation is similar to default semantic rules in Python, where common binary operators can be performed on both integers and floats, and the outputs are of type float. \\
 
 However, the pattern matching for handling every case of integer/float binary operation combinations is very arduous. For example, to handle every combination of integer and float inputs to the addition binary operation, we need to match the case in which both inputs are integers, when the first input is a float, when the second input is a float, and when both inputs are floats. As the number of binary operators supporting data type interoperability increases, so does the length of the code required to handle all the combinations. Instead, I developed a helper function to handle these combinations. See below:
 
@@ -134,7 +134,7 @@ let evalbinop (b : binop) (ab : expr) (bc : expr) : expr =
     | _, _, _ -> raise (EvalError " invalid binary operator ") ;;
 \end{minted}
 
-Finally, the behavior of the MiniML language with this new feature is given below.
+Finally, the behavior of the MicroML language with this new feature is given below.
 
 \begin{minted}{ocaml}
 <== 3 + 4 ;;

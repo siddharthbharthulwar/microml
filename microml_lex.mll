@@ -1,12 +1,12 @@
 (* 
-                         CS 51 Final Project
-                      MiniML -- Lexical Analyzer
+                         Source Code by Sid Bharthulwar  
+                      MicroML -- Lexical Analyzer
 
  *)
 
 {
   open Printf ;;
-  open Miniml_parse ;; (* need access to parser's token definitions *)
+  open MicroML_parse ;; (* need access to parser's token definitions *)
 
   let create_hashtable size init =
     let tbl = Hashtbl.create size in

@@ -1,10 +1,10 @@
 (* 
-                         CS 51 Final Project
-                        MiniML -- Expressions
+                         Source Code by Sid Bharthulwar  
+                        MicroML -- Expressions
 *)
 
 (*......................................................................
-  Abstract syntax of MiniML expressions 
+  Abstract syntax of MicroML expressions 
  *)
 
 type unop =

@@ -1,24 +1,24 @@
 (* 
-                         CS 51 Final Project
-                    MiniML -- Read-Eval-Print Loop
+                         Source Code by Sid Bharthulwar  
+                    MicroML -- Read-Eval-Print Loop
  *)
 
 module Ev = Evaluation ;;
-module MP = Miniml_parse ;;
-module ML = Miniml_lex ;;
+module MP = MicroML_parse ;;
+module ML = MicroML_lex ;;
 module Ex = Expr ;;
 
 open Printf ;;
 
 (* str_to_exp str -- Returns the expression specified by `str` using
-   the MiniML parser. *)
+   the MicroML parser. *)
 let str_to_exp (str: string) : Ex.expr =
   let lexbuf = Lexing.from_string str in
   let exp = MP.input ML.token lexbuf in
   exp ;;
 
-(* repl () -- Read-eval-print loop for MiniML, which prompts for and
-   evaluates MiniML expressions, printing the resulting value. Exits
+(* repl () -- Read-eval-print loop for MicroML, which prompts for and
+   evaluates MicroML expressions, printing the resulting value. Exits
    the loop and terminates upon reading an end-of-file
    (control-d). *)
 let repl () =
@@ -60,7 +60,7 @@ let repl () =
 (* Run REPL if called from command line *)
 
 try
-  let _ = Str.search_forward (Str.regexp "miniml\\.\\(byte\\|native\\|bc\\|exe\\)")
+  let _ = Str.search_forward (Str.regexp "MicroML\\.\\(byte\\|native\\|bc\\|exe\\)")
                              (Sys.argv.(0)) 0 in
   repl ()
 with Not_found -> () ;;
