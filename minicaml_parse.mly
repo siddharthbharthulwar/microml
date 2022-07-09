@@ -1,6 +1,6 @@
 (*
                          Source Code by Sid Bharthulwar  
-                           MicroML -- Parser
+                           Minicaml -- Parser
 *)
                   
 %{

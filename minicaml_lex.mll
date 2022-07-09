@@ -1,12 +1,12 @@
 (* 
                          Source Code by Sid Bharthulwar  
-                      MicroML -- Lexical Analyzer
+                      Minicaml -- Lexical Analyzer
 
  *)
 
 {
   open Printf ;;
-  open MicroML_parse ;; (* need access to parser's token definitions *)
+  open Minicaml_parse ;; (* need access to parser's token definitions *)
 
   let create_hashtable size init =
     let tbl = Hashtbl.create size in

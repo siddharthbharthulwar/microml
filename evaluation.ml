@@ -1,6 +1,6 @@
 (* 
                          Source Code by Sid Bharthulwar  
-                         MicroML -- Evaluation
+                         Minicaml -- Evaluation
 *)
 
 (* This module implements a small untyped ML-like language under

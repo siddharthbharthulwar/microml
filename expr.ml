@@ -1,10 +1,10 @@
 (* 
                          Source Code by Sid Bharthulwar  
-                        MicroML -- Expressions
+                        Minicaml -- Expressions
 *)
 
 (*......................................................................
-  Abstract syntax of MicroML expressions 
+  Abstract syntax of Minicaml expressions 
  *)
 
 type unop =
